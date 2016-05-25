@@ -1,0 +1,9 @@
+<resources>
+
+    <!-- settings activity theme -->
+    <style name="SettingsTheme." parent="@android:style/Theme.Material.Light.DarkActionBar">
+        <item name="android:colorPrimary">@color/weather24_blue</item>
+        <item name="android:colorPrimaryDark">@color/weather24_dark_blue</item>
+    </style>
+
+</resources>

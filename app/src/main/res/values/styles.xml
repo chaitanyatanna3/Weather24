@@ -1,0 +1,29 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/weather24_blue</item>
+        <item name="colorPrimaryDark">@color/weather24_dark_blue</item>
+    </style>
+
+    <!-- main activity theme-->
+    <style name="ForecastTheme" parent="AppTheme">
+        <item name="android:actionBarStyle">@style/ActionBar.Solid.Weather24.NoTitle</item>
+    </style>
+
+    <!-- settings activity theme-->
+    <style name="SettingsTheme" parent="AppTheme">
+
+    </style>
+
+    <!-- main activity action bar styles-->
+    <style name="ActionBar.Solid.Weather24.NoTitle" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:displayOptions">useLogo|showHome</item>
+        <item name="android:logo">@mipmap/weather</item>
+    </style>
+
+    <!--style for forecast listview-->
+    <style name="ForecastListStyle"></style>
+
+
+</resources>
