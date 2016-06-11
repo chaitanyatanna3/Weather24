@@ -100,7 +100,7 @@ public class TestUtilities extends AndroidTestCase {
 
         @Override
         public void onChange(boolean selfChange) {
-            onChange(selfChange);
+            onChange(selfChange, null);
         }
 
         @Override
