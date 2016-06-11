@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string-array name="pref_units_options">
         <item>@string/pref_units_label_metrics</item>
         <item>@string/pref_units_label_imperial</item>
     </string-array>
+
     <string-array name="pref_units_values">
         <item>@string/pref_units_metric</item>
         <item>@string/pref_units_imperial</item>
     </string-array>
+
+    <!-- names of the art packs available -->
+    <string-array name="pref_art_pack_options">
+        <item>@string/pref_art_pack_label_weather24</item>
+        <item>@string/pref_art_pack_label_cute_dogs</item>
+    </string-array>
+
+    <!-- format for retrieving art from external source -->
+    <string-array name="pref_art_pack_values">
+        <item>@string/pref_art_pack_weather24</item>
+        <item>@string/pref_art_pack_cute_dogs</item>
+    </string-array>
+    
 </resources>

@@ -1,5 +1,6 @@
 package com.example.chaitanya.weather24.data;
 
+import android.annotation.TargetApi;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -128,20 +129,24 @@ public class WeatherProvider extends ContentProvider {
          */
         Cursor cursor;
         switch (uriMatcher.match(uri)) {
-            case WEATHER_WITH_LOCATION_AND_DATE:
+            case WEATHER_WITH_LOCATION_AND_DATE: {
                 cursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
                 break;
-            case WEATHER_WITH_LOCATION:
+            }
+            case WEATHER_WITH_LOCATION: {
                 cursor = getWeatherByLocationSetting(uri, projection, sortOrder);
                 break;
-            case WEATHER:
+            }
+            case WEATHER: {
                 cursor = mOpenHelper.getReadableDatabase().query(WeatherContract.WeatherEntry.TABLE_NAME,
                         projection, selection, selectionArgs, null, null, sortOrder);
                 break;
-            case LOCATION:
+            }
+            case LOCATION: {
                 cursor = mOpenHelper.getReadableDatabase().query(WeatherContract.LocationEntry.TABLE_NAME,
                         projection, selection, selectionArgs, null, null, sortOrder);
                 break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -157,7 +162,7 @@ public class WeatherProvider extends ContentProvider {
         Uri returnUri;
 
         switch (match) {
-            case WEATHER:
+            case WEATHER: {
                 normalizeDate(values);
                 long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, values);
                 if (_id > 0) {
@@ -166,7 +171,8 @@ public class WeatherProvider extends ContentProvider {
                     throw new SQLException("Failed to insert row into " + uri);
                 }
                 break;
-            case LOCATION:
+            }
+            case LOCATION: {
                 long _id1 = db.insert(WeatherContract.LocationEntry.TABLE_NAME, null, values);
                 if (_id1 > 0) {
                     returnUri = WeatherContract.LocationEntry.buildLocationUri(_id1);
@@ -174,6 +180,7 @@ public class WeatherProvider extends ContentProvider {
                     throw new SQLException("Failed to insert row into " + uri);
                 }
                 break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -261,6 +268,17 @@ public class WeatherProvider extends ContentProvider {
             default:
                 return super.bulkInsert(uri, values);
         }
+    }
+
+    /**
+     * You do not need to call this method. This method is specifically to assist the testing
+     * framework in running smoothly.
+     */
+    @Override
+    @TargetApi(11)
+    public void shutdown() {
+        mOpenHelper.close();
+        super.shutdown();
     }
 
 }

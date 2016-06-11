@@ -1,20 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--state when a row is being pressed, but hasn't yet been activated-->
-    <item
-        android:state_pressed="true">
-        <ripple android:color="@color/grey" />
-    </item>
-
-
     <!--when the view is activated-->
     <item
         android:state_activated="true"
-        android:drawable="@color/weather24_light_blue" />
+        android:drawable="@color/activated" />
 
     <!--default-->
     <item
-        android:drawable="@android:color/transparent" />
+        android:drawable="@drawable/touch_selector_base" />
 
 </selector>

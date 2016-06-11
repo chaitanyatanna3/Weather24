@@ -3,8 +3,6 @@ package com.example.chaitanya.weather24.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.nfc.Tag;
-import android.util.Log;
 
 
 public class WeatherDbHelper extends SQLiteOpenHelper {
@@ -60,8 +58,6 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                         WeatherContract.WeatherEntry.COLUMN_LOC_KEY + ") ON CONFLICT REPLACE);";
 
 
-        Log.d("DatabaseChait", SQL_CREATE_LOCATION_TABLE);
-        Log.d("DatabaseChait", SQL_CREATE_WEATHER_TABLE);
         db.execSQL(SQL_CREATE_LOCATION_TABLE);
         db.execSQL(SQL_CREATE_WEATHER_TABLE);
     }

@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "240871387346",
+    "project_id": "weather24-1338"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:240871387346:android:e11443a945949961",
+        "android_client_info": {
+          "package_name": "com.example.chaitanya.weather24"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhIeu5j3VTgyyC1hhJ7_zziEonnBR7JqE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

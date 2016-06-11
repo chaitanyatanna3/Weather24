@@ -361,7 +361,7 @@ public class TestProvider extends AndroidTestCase {
         cursor.moveToFirst();
 
         for (int i = 0; i < BULK_INSERT_RECORDS_TO_INSERT; i++, cursor.moveToNext()) {
-            TestUtilities.validateCursor("Error while calidating WeatherEntry" + 1, cursor, bulkInsertContentValues[i]);
+            TestUtilities.validateCursor("Error while validating WeatherEntry" + 1, cursor, bulkInsertContentValues[i]);
         }
         cursor.close();
     }

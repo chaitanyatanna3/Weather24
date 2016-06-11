@@ -1,14 +1,26 @@
 package com.example.chaitanya.weather24;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.os.Build;
+import android.preference.PreferenceManager;
+import android.support.design.widget.AppBarLayout;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,23 +28,25 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
+import android.view.ViewTreeObserver;
+import android.widget.AbsListView;
+import android.widget.TextView;
 
 import com.example.chaitanya.weather24.data.WeatherContract;
 import com.example.chaitanya.weather24.sync.WeatherSyncAdapter;
 
 /**
- * Encapsulates fetching the forecast and displaying it as a (@Link Listview) layout
+ * Encapsulates fetching the forecast and displaying it as a (@Link android.support.v7.widget.RecyclerView) layout.
  */
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String LOG_TAG = ForecastFragment.class.getSimpleName();
     private ForecastAdapter mForecastAdapter;
-
-    private ListView mListView;
-    private int mPosition = ListView.INVALID_POSITION;
-    private boolean mUseTodayLayout;
+    private RecyclerView mRecyclerView;
+    private boolean mUseTodayLayout, mAutoSelectView;
+    private int mChoiceMode;
+    private boolean mHoldForTransition;
+    private long mInitialSelectedDate = -1;
 
     private static final String SELECTED_KEY = "selected_position";
     private static final int FORECAST_LOADER = 0;
@@ -81,7 +95,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
      */
     public interface Callback {
         //DetailFragmentCallback for when an item has been selected
-        public void onItemSelected(Uri dateUri);
+        public void onItemSelected(Uri dateUri, ForecastAdapter.ForecastAdapterViewHolder vh);
     }
 
     public ForecastFragment() {
@@ -92,6 +106,20 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         //Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onResume() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
     }
 
     @Override
@@ -119,51 +147,97 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onInflate(Activity activity, AttributeSet attrs, Bundle savedInstanceState) {
+        super.onInflate(activity, attrs, savedInstanceState);
+        TypedArray a = activity.obtainStyledAttributes(attrs, R.styleable.ForecastFragment, 0, 0);
+        mChoiceMode = a.getInt(R.styleable.ForecastFragment_android_choiceMode, AbsListView.CHOICE_MODE_NONE);
+        mAutoSelectView = a.getBoolean(R.styleable.ForecastFragment_autoSelectView, false);
+        mHoldForTransition = a.getBoolean(R.styleable.ForecastFragment_sharedElementTransition, false);
+        a.recycle();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        /**
-         * The ForecastAdapter will take data from a source and use
-         * it to populate the ListView it's attached to.
-         */
-        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        //Get the reference to the ListView, and attached this adapter to it.
-        mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
-        mListView.setAdapter(mForecastAdapter);
+        //Get a reference to the RecyclerView, and attach this adapter to it
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_forecast);
 
-        //We'll call our MainActivity
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                /**
-                 * CursorAdapter returns a cursor at the correct position for getItem(), or
-                 * null if it cannot seek to that position
-                 */
-                Cursor cursor = (Cursor) parent.getItemAtPosition(position);
-                if (cursor != null) {
-                    String locationSetting = Utility.getPreferredLocation(getActivity());
-                    ((Callback) getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE)));
-                }
-                mPosition = position;
-            }
-        });
+        //Set the layout manager
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        View emptyView = rootView.findViewById(R.id.recyclerview_forecast_empty);
 
         /**
-         * If there's instance state, mine it for useful information. The end-goal here is that
-         * user never knows that turning their devices sideways does crazy lifecycle related
-         * things. It should feel like some stuff stretched out, or magically appeared to take advantage of room,
-         * but data or place in app was never actually "lost".
+         * use this setting to improve performance if you know that changes in content
+         * do not change the layout size of the Recyclerview
          */
-        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
-            /**
-             * The ListView probably hasn't even been populated yet. Actually perform the swapout
-             * in onLoadFinished.
-             */
-        mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        mRecyclerView.setHasFixedSize(true);
+
+        /**
+         * The ForecastAdapter will take data from a source and use it to populate
+         * the RecyclerView it's attached to
+         */
+        mForecastAdapter = new ForecastAdapter(getActivity(), new ForecastAdapter.ForecastAdapterOnClickHandler() {
+            @Override
+            public void onClick(Long date, ForecastAdapter.ForecastAdapterViewHolder vh) {
+                String locationSetting = Utility.getPreferredLocation(getActivity());
+                ((Callback) getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, date), vh);
+            }
+        }, emptyView, mChoiceMode);
+
+        //specify the adapter
+        mRecyclerView.setAdapter(mForecastAdapter);
+
+        final View parallexView = rootView.findViewById(R.id.parallax_bar);
+        if (null != parallexView) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+                    @Override
+                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+                        int max = parallexView.getHeight();
+                        if (dy > 0) {
+                            parallexView.setTranslationY(Math.max(-max, parallexView.getTranslationY() - dy / 2));
+                        } else {
+                            parallexView.setTranslationX(Math.min(0, parallexView.getTranslationY() - dy / 2));
+                        }
+                    }
+                });
+            }
         }
+
+        final AppBarLayout appBarView = (AppBarLayout) rootView.findViewById(R.id.appbar);
+        if (null != appBarView) {
+            ViewCompat.setElevation(appBarView, 0);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                    @Override
+                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                        if (0 == mRecyclerView.computeVerticalScrollOffset()) {
+                            appBarView.setElevation(0);
+                        } else {
+                            appBarView.setElevation(appBarView.getTargetElevation());
+                        }
+                    }
+                });
+            }
+        }
+
+        /**
+         * If there's instance state, mine it for useful information. The end-goal here is that the
+         * user never knows that turning their device sideways does crazy lifecycle related things.
+         * It should feel like some stuff stretched out, or magically appeared to take advantage of
+         * room, but data or place in the app was never actually lost.
+         */
+        if (savedInstanceState != null) {
+            mForecastAdapter.onRestoreInstanceState(savedInstanceState);
+        }
+
         mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
 
         return rootView;
@@ -171,19 +245,27 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+
+        /**
+         * We hold for transition here just in-case the activity needs to be re-created.
+         * In a standard return transition, this doesn't actually make a difference.
+         */
+        if (mHoldForTransition) {
+            getActivity().supportPostponeEnterTransition();
+        }
         getLoaderManager().initLoader(FORECAST_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
     //Since we read the location when we create the loader, all we need to do is to restart things
     void onLocationChanged() {
-        updateWeather();
+//        updateWeather();
         getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
     }
 
-    private void updateWeather() {
-        WeatherSyncAdapter.syncImmediately(getActivity());
-    }
+//    private void updateWeather() {
+//        WeatherSyncAdapter.syncImmediately(getActivity());
+//    }
 
     private void openPreferredLocationInMap() {
         /**
@@ -197,10 +279,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 cursor.moveToPosition(0);
                 String posLat = cursor.getString(COL_COORD_LAT);
                 String posLong = cursor.getString(COL_COORD_LONG);
-                Uri geoLocation = Uri.parse("Geo:" + posLat + "," + posLong);
-
+                Uri geoLocation = Uri.parse("geo:" + posLat + "," + posLong);
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(geoLocation);
+                Log.d(LOG_TAG, geoLocation.toString());
                 if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
                     startActivity(intent);
                 } else {
@@ -212,14 +294,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+
         /**
          * When tablets rotate, the currently selected list item needs to be saved.
-         * When no item is selected, mPosition will be set to ListView.INVALID_POSITION,
-         * so chack for that before storing.
          */
-        if (mPosition != ListView.INVALID_POSITION) {
-            outState.putInt(SELECTED_KEY, mPosition);
-        }
+        mForecastAdapter.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 
@@ -228,7 +307,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         /**
          * This is called when a new Loader needs to be created. This fragment only uses one
          * loader, so we don't care about checking the id.
-         * To only show current and future dates, filter the query to return weather only for dates after on including today.
+         * To only show current and future dates, filter the query to return weather only for
+         * dates after on including today.
          */
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
         String locationSetting = Utility.getPreferredLocation(getActivity());
@@ -238,13 +318,62 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
         mForecastAdapter.swapCursor(data);
-        if (mPosition != ListView.INVALID_POSITION) {
-            /**
-             * If we don't need to restart the loader, and thers's a desired position to restore to,
-             * do so now.
-             */
-        mListView.smoothScrollToPosition(mPosition);
+        updateEmptyView();
+        if (data.getCount() == 0) {
+            getActivity().supportStartPostponedEnterTransition();
+        } else {
+            mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    /**
+                     * Since we know we're going to get items, we keep the listener
+                     * around until we see children
+                     */
+                    if (mRecyclerView.getChildCount() > 0) {
+                        mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                        int position = mForecastAdapter.getSelectedItemPosition();
+                        if (position == RecyclerView.NO_POSITION && -1 != mInitialSelectedDate) {
+                            Cursor data = mForecastAdapter.getCursor();
+                            int count = data.getCount();
+                            int dateColumn = data.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DATE);
+                            for (int i = 0; i < count; i++) {
+                                data.moveToPosition(i);
+                                if (data.getLong(dateColumn) == mInitialSelectedDate) {
+                                    position = i;
+                                    break;
+                                }
+                            }
+                        }
+                        if (position == RecyclerView.NO_POSITION) {
+                            position = 0;
+                        }
+                        /**
+                         * If we don't need to restart the loader, and there's a desired position to
+                         * restore to, do so now
+                         */
+                    mRecyclerView.smoothScrollToPosition(position);
+                        RecyclerView.ViewHolder vh = mRecyclerView.findViewHolderForAdapterPosition(position);
+                        if (null != vh && mAutoSelectView) {
+                            mForecastAdapter.selectView(vh);
+                        }
+                        if (mHoldForTransition) {
+                            getActivity().supportStartPostponedEnterTransition();
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (null != mRecyclerView) {
+            mRecyclerView.clearOnScrollListeners();
         }
     }
 
@@ -257,6 +386,48 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         mUseTodayLayout = useTodayLayout;
         if (mForecastAdapter != null) {
             mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
+        }
+    }
+
+    public void setInitialSelectedDate(long initialSelectedDate) {
+        mInitialSelectedDate = initialSelectedDate;
+    }
+
+    /**
+     * Updates the empty list view with contextually relevant information that the user can
+     * use to determine why they aren't seeing weather
+     */
+    private void updateEmptyView() {
+        if (mForecastAdapter.getItemCount() == 0) {
+            TextView tv = (TextView) getView().findViewById(R.id.recyclerview_forecast_empty);
+            if (null != tv) {
+                //if the cursor is empty, why? do we have an invalid location
+                int message = R.string.empty_forecast_list;
+                @WeatherSyncAdapter.LocationStatus int location = Utility.getLocationStatus(getActivity());
+                switch (location) {
+                    case WeatherSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                        message = R.string.empty_forecast_list_server_down;
+                        break;
+                    case WeatherSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                        message = R.string.empty_forecast_list_server_error;
+                        break;
+                    case WeatherSyncAdapter.LOCATION_STATUS_INVALID:
+                        message = R.string.empty_forecast_list_invalid_location;
+                        break;
+                    default:
+                        if (!Utility.isNetworkAvailable(getActivity())) {
+                            message = R.string.empty_forecast_list_no_network;
+                        }
+                }
+                tv.setText(message);
+            }
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_location_status_key))) {
+            updateEmptyView();
         }
     }
 }

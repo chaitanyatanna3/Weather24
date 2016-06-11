@@ -6,6 +6,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Permissions for Google Cloud Message -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <permission android:name="com.example.chaitanya.weather24.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+    <uses-permission android:name="com.example.chaitanya.weather24.permission.C2D_MESSAGE" />
 
 
     <application
@@ -18,7 +26,7 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/ForecastTheme">
+            android:theme="@style/AppTheme.Main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,7 +36,8 @@
 
         <activity android:name=".DetailActivity"
             android:label="@string/title_activity_detail"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.Details">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
@@ -44,7 +53,7 @@
         </activity>
 
         <provider
-            android:authorities="com.example.chaitanya.weather24"
+            android:authorities="@string/content_authority"
             android:name=".data.WeatherProvider"
             android:exported="false"
             android:syncable="true" />
@@ -68,6 +77,76 @@
             <meta-data
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/syncadapter" />
+        </service>
+
+        <!-- The Google Cloud Messaging receiver and services -->
+        <receiver android:name="com.google.android.gms.gcm.GcmReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dmm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+                <category android:name="com.example.chaitanya.weather24"/>
+            </intent-filter>
+        </receiver>
+
+        <!--Muzei Extension -->
+        <service android:name=".muzei.WeatherMuzeiSource"
+            android:icon="@drawable/ic_clear"
+            android:label="@string/app_name"
+            android:description="@string/muzei_description">
+            <intent-filter>
+                <action android:name="com.google.android.apps.muzei.api.MuzeiArtSource" />
+            </intent-filter>
+            <meta-data android:name="color" android:value="@color/primary" />
+        </service>
+
+        <!-- Today Widget -->
+        <receiver android:name=".widget.TodayWidgetProvider"
+            android:label="@string/title_widget_today">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.chaitanya.weather24.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_today" />
+        </receiver>
+        <service android:name=".widget.TodayWidgetIntentService" />
+
+        <!-- Detail Widget -->
+        <receiver android:name=".widget.DetailWidgetProvider"
+            android:label="@string/title_widget_detail"
+            android:enabled="@bool/widget_detail_enabled">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.chaitanya.weather24.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_detail" />
+        </receiver>
+
+        <service android:name=".widget.DetailWidgetRemoteViewsService"
+            android:enabled="@bool/widget_detail_enabled"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <service android:name=".gcm.MyGcmListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </service>
+
+        <service android:name=".gcm.MyInstanceIdListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.iid.InstanceID" />
+            </intent-filter>
+        </service>
+
+        <service android:name=".gcm.RegistrationIntentService"
+            android:exported="false">
+
         </service>
 
     </application>

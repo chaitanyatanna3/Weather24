@@ -3,14 +3,14 @@
 
     <item
         android:state_pressed="true"
-        android:drawable="@color/weather24_light_blue" />
+        android:drawable="@color/primary_light" />
     <item
         android:state_activated="true"
-        android:drawable="@color/weather24_light_blue" />
+        android:drawable="@color/primary_light" />
     <item
         android:state_selected="true"
-        android:drawable="@color/weather24_light_blue" />
+        android:drawable="@color/primary_light" />
     <item
-        android:drawable="@color/weather24_blue" />
+        android:drawable="@color/primary" />
 
 </selector>
