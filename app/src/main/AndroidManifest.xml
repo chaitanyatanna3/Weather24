@@ -52,6 +52,11 @@
                 android:value=".MainActivity" />
         </activity>
 
+        <!-- API Key for Places for getting User's current location -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyA0NYKaZ_-jFLbRA8jaCMdbPDIZtFGWKcI" />
+
         <provider
             android:authorities="@string/content_authority"
             android:name=".data.WeatherProvider"
