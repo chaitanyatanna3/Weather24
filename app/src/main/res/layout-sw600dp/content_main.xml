@@ -59,7 +59,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:id="@+id/fragment_forecast"
-        android:name="com.example.chaitanya.weather24.ForecastFragment"
+        android:name="com.awesome.chaitanya.weather24.ForecastFragment"
         android:layout_alignEnd="@+id/layout_center"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"

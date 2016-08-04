@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:custom="http://schemas.android.com/apk/res/com.example.chaitanya.weather24"
+    xmlns:custom="http://schemas.android.com/apk/res/com.awesome.chaitanya.weather24"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.example.chaitanya.weather24.LocationEditTextPreference
+    <com.awesome.chaitanya.weather24.LocationEditTextPreference
         android:title="@string/pref_location_label"
         android:key="@string/pref_location_key"
         android:defaultValue="@string/pref_location_default"

@@ -108,8 +108,8 @@
     <string name="format_humidity">Humidity: <xliff:g id="pressure">%1.0f</xliff:g> %%</string>
 
     <!--syncadapter related-->
-    <string name="sync_account_type">weather24.example.com</string>
-    <string name="content_authority">com.example.chaitanya.weather24</string>
+    <string name="sync_account_type">weather24.awesome.com</string>
+    <string name="content_authority">com.awesome.chaitanya.weather24</string>
 
     <!--notification format-->
     <string name="format_notification">Forecast: <xliff:g id="condition">%1$s</xliff:g> High: <xliff:g id="high">%2$s</xliff:g> Low: <xliff:g id="low">%3$s</xliff:g></string>

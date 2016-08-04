@@ -1,20 +1,20 @@
 {
   "project_info": {
-    "project_number": "240871387346",
-    "project_id": "weather24-1338"
+    "project_number": "814024284544",
+    "project_id": "awesomeweather-1377"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:240871387346:android:e11443a945949961",
+        "mobilesdk_app_id": "1:814024284544:android:41f1e6a397207125",
         "android_client_info": {
-          "package_name": "com.example.chaitanya.weather24"
+          "package_name": "com.awesome.chaitanya.weather24"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDhIeu5j3VTgyyC1hhJ7_zziEonnBR7JqE"
+          "current_key": "AIzaSyBMRguWFCS5yTyLuAJDxSKXdc_1CmE-rAk"
         }
       ],
       "services": {

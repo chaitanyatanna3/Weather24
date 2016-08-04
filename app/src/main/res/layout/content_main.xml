@@ -1,7 +1,7 @@
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/com.example.chaitanya.weather24"
     android:id="@+id/fragment_forecast"
-    android:name="com.example.chaitanya.weather24.ForecastFragment"
+    android:name="com.awesome.chaitanya.weather24.ForecastFragment"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:sharedElementTransitions="true" />

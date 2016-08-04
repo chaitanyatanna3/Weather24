@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/widget_margin">
@@ -18,7 +17,7 @@
             android:id="@+id/widget_icon"
             android:layout_centerVertical="true"
             android:scaleType="centerInside"
-            tools:src="@drawable/art_clear"/>
+            android:src="@drawable/art_clear"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -31,7 +30,7 @@
             android:paddingStart="16dp"
             android:textAppearance="?android:textAppearanceLarge"
             android:textColor="@color/primary_text"
-            tools:text="Clear"/>
+            android:text="Clear"/>
         <TextView
             android:layout_width="@dimen/forecast_text_width"
             android:layout_height="wrap_content"
@@ -44,7 +43,7 @@
             android:fontFamily="sans-serif-light"
             android:textColor="@color/forecast_low_text"
             android:textSize="@dimen/forecast_text_size"
-            tools:text="7"/>
+            android:text="7"/>
         <TextView
             android:layout_width="@dimen/forecast_text_width"
             android:layout_height="wrap_content"
@@ -59,7 +58,7 @@
             android:fontFamily="sans-serif-light"
             android:textColor="@color/primary_text"
             android:textSize="@dimen/forecast_text_size"
-            tools:text="10"/>
+            android:text="10"/>
     </RelativeLayout>
 
 </FrameLayout>

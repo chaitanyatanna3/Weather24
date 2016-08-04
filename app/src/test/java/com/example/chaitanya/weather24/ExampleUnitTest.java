@@ -1,4 +1,4 @@
-package com.example.chaitanya.weather24;
+package com.awesome.chaitanya.weather24;
 
 import org.junit.Test;
 
